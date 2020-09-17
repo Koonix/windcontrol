@@ -1,0 +1,263 @@
+#!/bin/bash
+# Koonix 2020-08-24
+
+# Fan control script made with simplicity and sucklessness in mind.
+# Configured through editing and reinstalling the script.
+
+# Configuration
+# Temperature sampling interval in seconds
+interval=2
+# How many intervals should a temperature rise last to cause a rampup
+spike_rejection=4
+# How long (in seconds) to wait for fans to ramp up at the start
+rampup_delay=2
+
+# Configure temp-pwm pairs
+# as an example, this next one means:
+# If coretemp is 75 degrees celsius or more, set fan pwms to 255 and 255.
+coretemp_target[1]=75
+pwm_cpu[1]=255
+pwm_case[1]=255
+
+coretemp_target[2]=70
+pwm_cpu[2]=200
+pwm_case[2]=200
+
+coretemp_target[3]=65
+pwm_cpu[3]=185
+pwm_case[3]=150
+
+coretemp_target[4]=60
+pwm_cpu[4]=160
+pwm_case[4]=150
+
+coretemp_target[5]=52
+pwm_cpu[5]=130
+pwm_case[5]=142
+
+coretemp_target[6]=20
+pwm_cpu[6]=85
+pwm_case[6]=110
+
+
+# Kernel file paths
+devices_path="/sys/devices/platform"
+
+coretemp_path="${devices_path}/coretemp.0/hwmon/hwmon1"
+file_coretemp="${coretemp_path}/temp2_input"
+
+pwm_path="${devices_path}/it87.656/hwmon/hwmon2"
+file_pwm_cpu="${pwm_path}/pwm1"
+file_pwm_case="${pwm_path}/pwm2"
+file_pwm_aux="${pwm_path}/pwm3"
+
+file_pwm_cpu_enable="${pwm_path}/pwm1_enable"
+file_pwm_case_enable="${pwm_path}/pwm2_enable"
+file_pwm_aux_enable="${pwm_path}/pwm3_enable"
+
+# Initializing some variables; don't change them
+current_coretemp_target="${coretemp_target[1]}"
+coretemp_target_stable_period_count=0
+
+# Everything is done here in the main function.
+main() { \
+#   Check for possible errors
+    error_checks
+
+#   Enable pwm control
+    enable_fan_control "$file_pwm_aux_enable"
+    enable_fan_control "$file_pwm_cpu_enable"
+    enable_fan_control "$file_pwm_case_enable"
+
+#   Ramp up the fans to max for 4 seconds
+    initial_rampup
+
+
+#   Big boy eternal while loop
+    while true; do
+
+#       Divide the raw temp sensor's value by 1000 to get temp in celsius.
+        coretemp_raw=$(cat "$file_coretemp")
+        coretemp_actual=$((coretemp_raw / 1000))
+
+#       I know these next if statements are nested as fuck, but I don't care. go figure it out.
+#       In fact, why the fuck won't you fix it if it's so annoying huh? if you weren't such an incompetent cocksucker,
+#       you would take it upon yourself and rewrite this mess via some nice functions and fix it already. Also fuck the 80 character rule. not that I have an ultrawide monitor or anything, but still. I mean, this line is WAAAAY more than 80 characters at this point, but you're still reading it. so fuck you.
+
+#       Loop over coretemp array to find the one that matches coretemp_actual.
+        for (( i=1; i<=${#coretemp_target[@]}; i++ )); do
+
+#           if found the matching target, do the following
+            if [[ $coretemp_actual -ge ${coretemp_target[$i]} ]]; then
+
+#                echo "${coretemp_target[$i]}"
+#               if the new matching target in this period is different from currently active target, do the following
+                if [[ ${coretemp_target[$i]} -ne $current_coretemp_target ]]; then
+
+#                   keep count of how many cycles the increase in temperature been stable for
+                    (( coretemp_target_is_different_period_count++ ))
+
+#                   if the temperature rise has been stable for long enough, ramp up the fans
+                    if [[ $coretemp_target_is_different_period_count -ge $spike_rejection ]]; then
+                        set_fan_pwm "$file_pwm_cpu" "${pwm_cpu["$i"]}"
+                        set_fan_pwm "$file_pwm_case" "${pwm_case["$i"]}"
+                        current_coretemp_target="${coretemp_target[$i]}"
+                    fi
+
+#               if the temperature rise was just momentary, reset the count and start over
+                else
+                    coretemp_target_is_different_period_count=0
+                fi
+
+#               Since the match was found, break out of the for loop.
+                break
+            fi
+        done
+        sleep "$interval"
+    done
+}
+
+echo "this command is utterly useless and confusing." > /dev/null 2>&1
+echo "don't mind me, just trying to fuck with my inner perfeCtionizM.">/dev/null 2>&1
+
+#############
+# Functions #
+#############
+
+
+# Run some checks and detect errors
+error_checks() { \
+    check_if_already_running
+    check_if_all_arrays_same_size
+    check_if_pwm_values_in_range "${pwm_case[@]}"
+    check_if_pwm_values_in_range "${pwm_cpu[@]}"
+    check_if_interval_bigger_than_zero
+    check_if_kernel_files_accessible
+}
+
+
+# Ramp up fans at the start for a little while
+rampup() { \
+    set_fan_pwm "$file_pwm_aux" 255
+    set_fan_pwm "$file_pwm_cpu" 200
+    set_fan_pwm "$file_pwm_case" 250
+}
+
+
+# Rampup and wait a little bit
+initial_rampup() { \
+    rampup
+    sleep "$rampup_delay"
+}
+
+
+# Set the given fan to the given pwm
+set_fan_pwm() { \
+    local pwm_file="$1"
+    local pwm="$2"
+    echo "$pwm" | tee "$pwm_file" > /dev/null 2>&1
+}
+
+
+# Enable fan pwm control
+enable_fan_control() { \
+    local file_pwm_enable="$1"
+    echo 1 | tee "$file_pwm_enable" > /dev/null 2>&1
+}
+
+
+# Disable fan pwm control
+disable_fan_control() { \
+    local file_pwm_enable="$1"
+    echo 2 | tee "$file_pwm_enable" > /dev/null 2>&1
+}
+
+
+# Check array element count equality
+check_if_all_arrays_same_size() { \
+if [ "${#coretemp_target[@]}" != "${#pwm_cpu[@]}" ] || [ "${#pwm_cpu[@]}" != "${#pwm_case[@]}" ]
+then
+    echo "WINDCONTROL ERROR: Imbalance in arrays' element count" >&2 ; exit 1
+fi
+}
+
+
+# Check if configured pwm values are between or equal 0 and 255
+check_if_pwm_values_in_range() { \
+    pwm_array=("$@")
+    for pwm_value in "${pwm_array[@]}"; do
+        if [ "$pwm_value" -gt 255 ] || [ "$pwm_value" -lt 0 ]; then
+		    echo "ERROR: PWM Value $pwm_value out of range" >&2 ; exit 1
+        fi
+    done
+}
+
+
+# Check if interval is greater than 0
+check_if_interval_bigger_than_zero() { \
+	if [ "$interval" -le 0 ]; then
+		echo "ERROR: Interval must be at least 1" >&2
+		exit 1
+	fi
+}
+
+
+# Check if a given file is readable
+check_read_access() { \
+    if [ ! -r "$1" ]; then
+		echo "ERROR: Can't access $1" >&2 ; exit 1
+    fi
+}
+
+
+# Check if a given file is writable
+check_write_access() { \
+    if [ ! -w "$1" ]; then
+		echo "ERROR: Can't access $1" >&2
+        echo "Did you sudo?" >&2
+        exit 1
+    fi
+}
+
+
+# Check if kernel files are accessible
+check_if_kernel_files_accessible() { \
+    check_read_access "$file_coretemp"
+    check_write_access "$file_pwm_case"
+    check_write_access "$file_pwm_cpu"
+    check_write_access "$file_pwm_aux"
+}
+
+
+# Check if windcontrol is already running; if not, make a PID file for it
+check_if_already_running() { \
+    piddir="/var/run"
+    pidfile="${piddir}/windcontrol.pid"
+    if [ -f "$pidfile" ]; then
+	    echo "File $pidfile exists" >&2
+	    echo "Windcontrol possibly already running" >&2
+    	exit 1
+    fi
+    check_write_access "$piddir"
+    echo $$ > "$pidfile"
+}
+
+
+# Set fans to max upon kill/exit
+restore_fans() { \
+	local status=$1
+    echo "Disabling fan control before exiting..."
+    rampup
+    disable_fan_control "$file_pwm_case_enable"
+    disable_fan_control "$file_pwm_aux_enable"
+    disable_fan_control "$file_pwm_cpu_enable"
+	rm -f "$pidfile"
+	exit "$status"
+}
+trap 'restore_fans 0' SIGQUIT SIGTERM
+trap 'restore_fans 1' SIGHUP SIGINT
+
+
+# Run the main function
+main; exit
+#

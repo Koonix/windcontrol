@@ -1,0 +1,4 @@
+#!/bin/sh
+sv check lm_sensors > /dev/null || exit 1
+exec 2>&1
+exec /usr/bin/windcontrol
