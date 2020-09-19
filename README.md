@@ -1,4 +1,4 @@
-# WindControl
+# Windcontrol
 
 ## Introduction
 
