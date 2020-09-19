@@ -5,22 +5,28 @@
 A Simple and Effective Fan control script Made with **Simplicity &
 Sucklessness™** in mind.
 
-All the configuration is done through editing the script and reinstalling it.
+All the **configuration is done through editing the script** and reinstalling it.
 
-**runit** service included (for autorun at system startup).
+runit service included (for auto start at system startup).
 
 ## Installation
 
-Install windcontrol:
+1. Edit and configure the script's configuration part
+
+2. Install windcontrol:
     sudo ./install-windcontrol.sh
 
-Install it's runit service:
+## Auto start at system startup
+
+### runit
+
+1. Install runit service:
     sudo ./install-runit-service.sh
 
-Link the service to runit's main services directory:
+2. Link the service to runit's main services directory:
     sudo ln -s /etc/runit/sv/windcontrol /run/runit/services
 
-Runit should start the service in a few seconds. You can check it:
+3. Runit should take over the service in a few seconds. Check it:
     sudo sv status windcontrol
 
 ## TO-DO
