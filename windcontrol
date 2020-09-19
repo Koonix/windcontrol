@@ -260,4 +260,3 @@ trap 'restore_fans 1' SIGHUP SIGINT
 
 # Run the main function
 main; exit
-#

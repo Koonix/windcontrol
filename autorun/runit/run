@@ -1,4 +1,6 @@
 #!/bin/sh
 sv check lm_sensors > /dev/null || exit 1
+killall -q windcontrol
+rm -f /var/run/windcontrol.pid
 exec 2>&1
 exec /usr/bin/windcontrol
