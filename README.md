@@ -5,6 +5,8 @@
 A Simple and Effective Fan control script Made with **Simplicity &
 Sucklessness™** in mind.
 
+Doesn't ramp up/down the fans with momentary rise/fall of the temperature.
+
 All the **configuration is done through editing the script** and reinstalling it.
 
 runit service included (for auto start at system startup).
