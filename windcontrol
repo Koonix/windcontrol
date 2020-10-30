@@ -18,11 +18,21 @@ rampup_delay=2 # 0 means no initial rampup.
 
 
 ### Configure temp-pwm pairs
-# You can add as many of these as you like.
 #
-# As a hint, this next paragraph means:
+# The script checks these temp-pwm pairs from number 1 to the last one,
+# and if the current temp is equal or higher than the temp-pwm pair it's checking,
+# it will set the fan pwms to the pwms defined in that temp-pwm pair.
+#
+# however if the current temp is lower, it will check the next ones until a match is found.
+#
+# so make sure the last temp-pwm is set to a temp that is always lower than
+# your cpu temp (eg. 10 degrees)
+#
+# Note 1: They have to be sorted by temperature, from highest to lowest.
+# Note 2: There are 6 of them by default, but you can add as many as you like.
+
+# As a hint, this first temp-pwm pair implies the following:
 # If coretemp is 75 degrees celsius or more, set fan pwms to 255 and 255.
-#
 coretemp_target[1]=75
 pwm_cpu[1]=255
 pwm_case[1]=255
@@ -43,7 +53,7 @@ coretemp_target[5]=52
 pwm_cpu[5]=130
 pwm_case[5]=142
 
-coretemp_target[6]=20
+coretemp_target[6]=10
 pwm_cpu[6]=85
 pwm_case[6]=110
 ### End of temp-pwm pairs
@@ -51,8 +61,8 @@ pwm_case[6]=110
 
 ### Kernel file paths;
 # Figuring these out shouldn't be too hard.
-# You can use the `pwmconfig` command and then
-# check out your /etc/fancontrol to figure out these paths.
+# You can run the `pwmconfig` command and then
+# check the /etc/fancontrol file to figure out these paths.
 #
 devices_path="/sys/devices/platform"
 
