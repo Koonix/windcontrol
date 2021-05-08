@@ -4,7 +4,9 @@
 
 # A fan control script made with simplicity and sucklessness in mind.
 
-# Unlike other fan control programs, this script doesn't change the speed of
+# Unlike some other fan control programs, it doesn't ramp up/down the fans
+# with momentary temperature spikes.
+#
 # the fans on quick temperature spikes. fans only ramp up (or down)
 # if the rise (or fall) of temperature is persistent.
 
