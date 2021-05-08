@@ -57,7 +57,7 @@ pwm_cpu[$number]=200
 pwm_case[$number]=200
 
 number=2
-# 64 to 79 degrees:
+# 64 to 69 degrees:
 coretemp_target[$number]=64
 pwm_cpu[$number]=185
 pwm_case[$number]=150
