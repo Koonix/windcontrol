@@ -5,34 +5,21 @@
 A Simple and Effective Fan control script Made with **Simplicity &
 Sucklessness™** in mind.
 
-Doesn't ramp up/down the fans with momentary rise/fall of the temperature.
+It's selling point is that it doesn't ramp up/down the fans with momentary
+spikes of temperature change.
 
-All the **configuration is done through editing the script** and reinstalling it.
+All of the **configuration is done by editing the script** and reinstalling it.
 
-runit service included (for auto start at system startup).
+runit service included (for autostart at system startup).
 
 ## Installation
 
-1. Edit and configure the script's configuration part
+1. Configure the script by following the instruction in the script
 
-2. Install windcontrol:
-    sudo ./install-windcontrol.sh
-
-## Auto start at system startup
-
-### runit
-
-1. Install runit service:
-    sudo ./install-runit-service.sh
-
-2. Link the service to runit's main services directory:
-    sudo ln -s /etc/runit/sv/windcontrol /run/runit/services
-
-3. Runit should take over the service in a few seconds. Check it:
-    sudo sv status windcontrol
+2. Install it by running `sudo ./install.sh`
 
 ## TO-DO
 
-- [ ] Add services for other init systems (systemd, OpenRC, etc.)
-- [ ] Cleanup the script; Too many nested if-statements in the main function.
-- [ ] Make the script POSIX Compliant.
+- [x] Cleanup the script; Too many nested if-statements in the main function.
+- [ ] Add services for other init systems (systemd, openrc, etc.)
+- [ ] Make the script POSIX compliant.
