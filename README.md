@@ -2,15 +2,15 @@
 
 ## Introduction
 
-A Simple and Effective Fan control script Made with **Simplicity &
-Sucklessness™** in mind.
+A Simple linux fan control shell script, made with **simplicity &
+sucklessness™** in mind.
 
-It's selling point is that it doesn't ramp up/down the fans with momentary
-spikes of temperature change.
+It's main selling point is that it doesn't ramp up/down the fans with momentary
+temperature spikes.
 
-All of the **configuration is done by editing the script** and reinstalling it.
+Any configuration is done by editing the script and reinstalling it.
 
-runit service included (for autostart at system startup).
+Includes runit service for autostarting at system startup.
 
 ## Installation
 
