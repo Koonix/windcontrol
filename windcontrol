@@ -18,12 +18,14 @@
 # Temperature sampling interval in seconds:
 interval=2
 #
-# How many intervals should a temperature-rise last to cause a fan rampup:
-spike_rejection=4
+# How many intervals should a temperature-rise/fall last
+# to cause the fans to rampup/rampdown:
+spike_rejection=10
 #
-# Fans are set to max pwm at the beginning to start them up if stopped.
-# How long (in seconds) to wait for fans to ramp up (start up) at the beginning:
-rampup_delay=2 # 0 means no initial rampup.
+# Fans are set to max pwm at the beginning to kickstart them if they are stopped.
+# How long (in seconds) to wait for fans to ramp up and kickstart at the beginning?
+# 0 means no initial rampup.
+rampup_delay=3
 
 
 # ===========================
@@ -34,47 +36,70 @@ rampup_delay=2 # 0 means no initial rampup.
 # and if the current temp is equal or higher than the temp-pwm pair it's checking,
 # it will set the fan pwms to the pwms defined in that temp-pwm pair.
 #
-# however if the current temp is lower, it will check the next ones until a match is found.
+# however if the current temp is lower than the pair it's checking,
+# it will check the next ones until a match is found.
 #
 # so make sure the last temp-pwm is set to a temp that is always lower than
 # your cpu temp (eg. 10 degrees)
 #
 # Note 1: They have to be sorted by temperature, from highest to lowest.
-# Note 2: There are 6 of them by default, but you can add as many as you like.
+# Note 2: There are 5 of them here, but you can add as many as you like (for finer control).
 
-# As a hint, this first temp-pwm pair implies the following:
-# If coretemp is 75 degrees celsius or more, set fan pwms to 255 and 255.
-coretemp_target[1]=75
-pwm_cpu[1]=255
-pwm_case[1]=255
+# For example, this first temp-pwm pair implies the following:
+# If coretemp is 70 degrees celsius or more, set fan pwms to 255 and 255 (max speed).
 
-coretemp_target[2]=70
-pwm_cpu[2]=200
-pwm_case[2]=200
+number=1
+# 70 degrees and above:
+coretemp_target[$number]=70
+pwm_cpu[$number]=200
+pwm_case[$number]=200
 
-coretemp_target[3]=65
-pwm_cpu[3]=185
-pwm_case[3]=150
+number=2
+# 64 to 79 degrees:
+coretemp_target[$number]=64
+pwm_cpu[$number]=185
+pwm_case[$number]=150
 
-coretemp_target[4]=60
-pwm_cpu[4]=160
-pwm_case[4]=150
+number=3
+# 60 to 63 degrees:
+coretemp_target[$number]=60
+pwm_cpu[$number]=160
+pwm_case[$number]=150
 
-coretemp_target[5]=52
-pwm_cpu[5]=130
-pwm_case[5]=142
+number=4
+# 55 to 59 degrees:
+coretemp_target[$number]=55
+pwm_cpu[$number]=130
+pwm_case[$number]=142
 
-coretemp_target[6]=10
-pwm_cpu[6]=85
-pwm_case[6]=110
-### End of temp-pwm pairs
+number=5
+# 0 to 54 degrees:
+coretemp_target[$number]=0
+pwm_cpu[$number]=85
+pwm_case[$number]=110
 
 
-### Kernel file paths;
-# Figuring these out shouldn't be too hard.
-# You can run the `pwmconfig` command and then
-# check the /etc/fancontrol file to figure out these paths.
+# ====================
+# = Kernel file paths
+# ====================
+
+# You have to install lm_sensors and enable it's service so
+# we can access the pwm controlling function of your computer.
+
+# Figuring these paths out shouldn't be too hard. you can search
+# /sys/devices or /sys/class/hwmon for hwmonX/pwm and tempX_input files.
+
+# So find the pwm files by running:
+#     $ find /sys/class/hwmon/*/ -name '*temp[0-9]*'
+# or: $ find /sys/devices -path '*core*/*temp*'
 #
+# Similarly find the temperature files by running:
+#     $ find /sys/class/hwmon/*/ -name '*pwm*'
+# or: $ find /sys/devices -path '*hwmon*/*pwm*'
+
+# You can run the `pwmconfig` command (from the package 'fancontrol') and
+# then check the file /etc/fancontrol to figure out these paths.
+
 devices_path="/sys/devices/platform"
 
 coretemp_path="${devices_path}/coretemp.0/hwmon/hwmon1"
@@ -88,7 +113,6 @@ file_pwm_aux="${pwm_path}/pwm3"
 file_pwm_cpu_enable="${pwm_path}/pwm1_enable"
 file_pwm_case_enable="${pwm_path}/pwm2_enable"
 file_pwm_aux_enable="${pwm_path}/pwm3_enable"
-### End of kernel file paths
 
 
 # ================
