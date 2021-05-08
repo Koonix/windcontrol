@@ -1,9 +1,19 @@
 #!/bin/bash
-# Koonix 2020-08-24
+# Ehsan Gh. 2021-05-09
+# https://github.com/soystemd
 
-# Fan control script made with simplicity and sucklessness in mind.
-# Configured through editing and reinstalling the script.
+# A fan control script made with simplicity and sucklessness in mind.
 
+# Unlike other fan control programs, this script doesn't change the speed of
+# the fans on quick temperature spikes. fans only ramp up (or down)
+# if the rise (or fall) of temperature is persistent.
+
+# All configurations should be done by editing and reinstalling the script.
+
+
+# ================
+# = Configuration
+# ================
 
 ### Configuration
 # Temperature sampling interval in seconds:
