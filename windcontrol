@@ -134,6 +134,9 @@ main ()
     # incase any fans are stopped.
     initial_rampup
 
+    # Initialize numberof_targetDifferent_periods, so that after
+    # the initial rampup, fans go back to their real speed quickly.
+    numberof_targetDifferent_periods="$spike_rejection"
 
     # This loop runs forever and everything is handled here.
     while true; do
