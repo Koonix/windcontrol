@@ -15,7 +15,6 @@
 # = Configuration
 # ================
 
-### Configuration
 # Temperature sampling interval in seconds:
 interval=2
 #
@@ -27,8 +26,10 @@ spike_rejection=4
 rampup_delay=2 # 0 means no initial rampup.
 
 
-### Configure temp-pwm pairs
-#
+# ===========================
+# = Configure temp-pwm pairs
+# ===========================
+
 # The script checks these temp-pwm pairs from number 1 to the last one,
 # and if the current temp is equal or higher than the temp-pwm pair it's checking,
 # it will set the fan pwms to the pwms defined in that temp-pwm pair.
@@ -90,9 +91,9 @@ file_pwm_aux_enable="${pwm_path}/pwm3_enable"
 ### End of kernel file paths
 
 
-#################
-# Main Function #
-#################
+# ================
+# = Main Function
+# ================
 
 # Main function; everything is done here.
 main() {
@@ -149,9 +150,9 @@ main() {
 }
 
 
-#############
-# Functions #
-#############
+# ============
+# = Functions
+# ============
 
 # Run some checks and detect errors
 error_checks() {
