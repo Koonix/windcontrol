@@ -120,56 +120,54 @@ file_pwm_aux_enable="${pwm_path}/pwm3_enable"
 # ================
 
 # Main function; everything is done here.
-main() {
-#   Check for possible errors
+main ()
+{
+    # Check for possible errors
     error_checks
 
-#   Enable pwm control
+    # Take control of fans
     enable_fan_control "$file_pwm_aux_enable"
     enable_fan_control "$file_pwm_cpu_enable"
     enable_fan_control "$file_pwm_case_enable"
 
-#   Ramp up the fans to max for 4 seconds
+    # Kickstart the fans by setting them to max speed,
+    # incase any fans are stopped.
     initial_rampup
 
 
-#   Big boy eternal while loop
+    # This loop runs forever and everything is handled here.
     while true; do
 
-#       Divide the raw temp sensor's value by 1000 to get temp in celsius.
+        # Wait
+        sleep "$interval"
+
+        # Divide the raw temp sensor's value by 1000 to get temp in celsius.
         coretemp_raw=$(cat "$file_coretemp")
         coretemp_actual=$((coretemp_raw / 1000))
 
-#       Loop over coretemp array to find the one that matches coretemp_actual.
-        for (( i=1; i<=${#coretemp_target[@]}; i++ )); do
-
-#           if found the matching target, do the following
-            if [[ $coretemp_actual -ge ${coretemp_target[$i]} ]]; then
-
-#                echo "${coretemp_target[$i]}"
-#               if the new matching target in this period is different from currently active target, do the following
-                if [[ ${coretemp_target[$i]} -ne $current_coretemp_target ]]; then
-
-#                   keep count of how many cycles the increase in temperature been stable for
-                    (( coretemp_numberof_periods_that_target_been_different++ ))
-
-#                   if the temperature rise has been stable for long enough, ramp up the fans
-                    if [[ $coretemp_numberof_periods_that_target_been_different -ge $spike_rejection ]]; then
-                        set_fan_pwm "$file_pwm_cpu" "${pwm_cpu["$i"]}"
-                        set_fan_pwm "$file_pwm_case" "${pwm_case["$i"]}"
-                        current_coretemp_target="${coretemp_target[$i]}"
-                    fi
-
-#               if the temperature rise was just momentary, reset the count and start over
-                else
-                    coretemp_numberof_periods_that_target_been_different=0
-                fi
-
-#               Since the match was found, break out of the for loop.
-                break
-            fi
+        i=1
+        # Find the coretemp array element (target) that matches coretemp_actual.
+        while true; do
+            [[ $coretemp_actual -ge ${coretemp_target[$i]} ]] && break
+            [[ $i -gt ${#coretemp_target[@]} ]] && i=1 && break
+            ((i++))
         done
-        sleep "$interval"
+
+        # if target is the same as before, reset counter and start over
+        [[ ${coretemp_target[$i]} -eq $current_coretemp_target ]]  &&
+            numberof_targetDifferent_periods=0 && continue
+
+        # keep count of how many cycles the change in temperature been stable for.
+        (( numberof_targetDifferent_periods++ ))
+
+        # if temperature rise has not been stable for long enough, start over.
+        [[ $numberof_targetDifferent_periods -lt \
+            $spike_rejection ]] && continue
+
+        set_fan_pwm "$file_pwm_cpu" "${pwm_cpu[$i]}"
+        set_fan_pwm "$file_pwm_case" "${pwm_case[$i]}"
+        current_coretemp_target="${coretemp_target[$i]}"
+
     done
 }
 
@@ -316,7 +314,7 @@ trap 'restore_fans 1' SIGHUP SIGINT
 
 # Initializing some variables; don't change them
 current_coretemp_target="${coretemp_target[1]}"
-coretemp_numberof_periods_that_target_been_different=0
+numberof_targetDifferent_periods=0
 
 # Run the main function
 main; exit
