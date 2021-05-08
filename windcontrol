@@ -180,7 +180,8 @@ main ()
 # ============
 
 # Run some checks and detect errors
-error_checks() {
+error_checks ()
+{
     check_if_already_running
     check_if_all_arrays_same_size
     check_if_pwm_values_in_range "${pwm_case[@]}"
@@ -191,7 +192,8 @@ error_checks() {
 
 
 # Ramp up fans at the start for a little while
-rampup() {
+rampup ()
+{
     set_fan_pwm "$file_pwm_aux" 255
     set_fan_pwm "$file_pwm_cpu" 200
     set_fan_pwm "$file_pwm_case" 250
@@ -199,7 +201,8 @@ rampup() {
 
 
 # Rampup and wait a little bit
-initial_rampup() {
+initial_rampup ()
+{
     [ "$rampup_delay" = 0 ] && return
     rampup
     sleep "$rampup_delay"
@@ -207,7 +210,8 @@ initial_rampup() {
 
 
 # Set the given fan to the given pwm
-set_fan_pwm() {
+set_fan_pwm ()
+{
     local pwm_file="$1"
     local pwm="$2"
     echo "$pwm" | tee "$pwm_file" > /dev/null 2>&1
@@ -215,21 +219,24 @@ set_fan_pwm() {
 
 
 # Enable fan pwm control
-enable_fan_control() {
+enable_fan_control ()
+{
     local file_pwm_enable="$1"
     echo 1 | tee "$file_pwm_enable" > /dev/null 2>&1
 }
 
 
 # Disable fan pwm control
-disable_fan_control() {
+disable_fan_control ()
+{
     local file_pwm_enable="$1"
     echo 2 | tee "$file_pwm_enable" > /dev/null 2>&1
 }
 
 
 # Check array element count equality
-check_if_all_arrays_same_size() {
+check_if_all_arrays_same_size ()
+{
 if [ "${#coretemp_target[@]}" != "${#pwm_cpu[@]}" ] ||\
     [ "${#pwm_cpu[@]}" != "${#pwm_case[@]}" ]
 then
@@ -239,37 +246,41 @@ fi
 
 
 # Check if configured pwm values are between or equal 0 and 255
-check_if_pwm_values_in_range() {
+check_if_pwm_values_in_range ()
+{
     pwm_array=("$@")
     for pwm_value in "${pwm_array[@]}"; do
         if [ "$pwm_value" -gt 255 ] || [ "$pwm_value" -lt 0 ]; then
-		    echo "ERROR: PWM Value $pwm_value out of range" >&2 ; exit 1
+            echo "ERROR: PWM Value $pwm_value out of range" >&2 ; exit 1
         fi
     done
 }
 
 
 # Check if interval is greater than 0
-check_if_interval_bigger_than_zero() {
-	if [ "$interval" -le 0 ]; then
-		echo "ERROR: Interval must be at least 1" >&2
-		exit 1
-	fi
+check_if_interval_bigger_than_zero ()
+{
+    if [ "$interval" -le 0 ]; then
+        echo "ERROR: Interval must be at least 1" >&2
+        exit 1
+    fi
 }
 
 
 # Check if a given file is readable
-check_read_access() {
+check_read_access ()
+{
     if [ ! -r "$1" ]; then
-		echo "ERROR: Can't access $1" >&2 ; exit 1
+        echo "ERROR: Can't access $1" >&2 ; exit 1
     fi
 }
 
 
 # Check if a given file is writable
-check_write_access() {
+check_write_access ()
+{
     if [ ! -w "$1" ]; then
-		echo "ERROR: Can't access $1" >&2
+        echo "ERROR: Can't access $1" >&2
         echo "Did you sudo?" >&2
         exit 1
     fi
@@ -277,7 +288,8 @@ check_write_access() {
 
 
 # Check if kernel files are accessible
-check_if_kernel_files_accessible() {
+check_if_kernel_files_accessible ()
+{
     check_read_access "$file_coretemp"
     check_write_access "$file_pwm_case"
     check_write_access "$file_pwm_cpu"
@@ -286,34 +298,34 @@ check_if_kernel_files_accessible() {
 
 
 # Check if windcontrol is already running; if not, make a PID file for it
-check_if_already_running() {
+check_if_already_running ()
+{
     piddir="/var/run"
     pidfile="${piddir}/windcontrol.pid"
     if [ -f "$pidfile" ]; then
-	    echo "File $pidfile exists" >&2
-	    echo "Windcontrol possibly already running" >&2
-    	exit 1
+        echo "File $pidfile exists" >&2
+        echo "Windcontrol possibly already running" >&2
+        exit 1
     fi
     check_write_access "$piddir"
     echo $$ > "$pidfile"
 }
 
 
-# Set fans to max upon kill/exit
-restore_fans() {
-	local status=$1
-    echo "Disabling fan control before exiting..."
+# Restore motherboard's fancontrol and exit.
+restore_fans_and_exit ()
+{
+    echo -e "\nDisabling manual fancontrol before exiting..."
     rampup
     disable_fan_control "$file_pwm_case_enable"
     disable_fan_control "$file_pwm_aux_enable"
     disable_fan_control "$file_pwm_cpu_enable"
-	rm -f "$pidfile"
-	exit "$status"
+    rm -f "$pidfile"
+    exit
 }
-# Run the 'restore_fans' functions upon receiving these signals.
-trap 'restore_fans 0' SIGQUIT SIGTERM
-trap 'restore_fans 1' SIGHUP SIGINT
 
+# Restore the fans and exit upon receiving these signals.
+trap restore_fans_and_exit QUIT INT TERM EXIT
 
 # Initializing some variables; don't change them
 current_coretemp_target="${coretemp_target[1]}"
