@@ -92,12 +92,12 @@ pwm_case[$number]=110
 # /sys/devices or /sys/class/hwmon for hwmonX/pwm and tempX_input files.
 
 # So find the pwm files by running:
-#     $ find /sys/class/hwmon/*/ -name '*temp[0-9]*'
-# or: $ find /sys/devices -path '*core*/*temp*'
-#
-# Similarly find the temperature files by running:
 #     $ find /sys/class/hwmon/*/ -name '*pwm*'
 # or: $ find /sys/devices -path '*hwmon*/*pwm*'
+#
+# Similarly find the temperature files by running:
+#     $ find /sys/class/hwmon/*/ -name '*temp[0-9]*'
+# or: $ find /sys/devices -path '*core*/*temp*'
 
 # You can run the `pwmconfig` command (from the package 'fancontrol') and
 # then check the file /etc/fancontrol to figure out these paths.
