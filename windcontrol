@@ -6,12 +6,13 @@
 
 # Unlike some other fan control programs, it doesn't ramp up/down the fans
 # with momentary temperature spikes.
-#
-# the fans on quick temperature spikes. fans only ramp up (or down)
-# if the rise (or fall) of temperature is persistent.
 
 # All configurations should be done by editing and reinstalling the script.
 
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
 
 # ================
 # = Configuration
